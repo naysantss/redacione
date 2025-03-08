@@ -26,7 +26,7 @@ interface RedacaoData {
 }
 
 interface NovaRedacaoFormProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export default function NovaRedacaoForm({ params }: NovaRedacaoFormProps) {
@@ -41,7 +41,7 @@ export default function NovaRedacaoForm({ params }: NovaRedacaoFormProps) {
   const [darkMode, setDarkMode] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { id } = use(params);
+  const { id } = params;
 
   useEffect(() => {
     const handleScroll = () => {

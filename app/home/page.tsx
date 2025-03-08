@@ -17,7 +17,7 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import { XMarkIcon, Bars3Icon, ChartBarIcon, DocumentTextIcon, BookOpenIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, Bars3Icon, ChartBarIcon, DocumentTextIcon, BookOpenIcon, PowerIcon } from '@heroicons/react/24/outline';
 
 ChartJS.register(
   CategoryScale,
@@ -425,8 +425,29 @@ export default function Home() {
           <div className="flex flex-col h-full">
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <img src="/logo.png" alt="Logo" className="h-8 w-8" />
+                <div className="flex items-center gap-3">
+                  {currentUser?.photoURL ? (
+                    <img
+                      src={currentUser.photoURL}
+                      alt="Foto do perfil"
+                      className="w-10 h-10 rounded-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                      <span className="text-lg font-medium text-purple-700">
+                        {currentUser?.email?.[0].toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex flex-col">
+                    <span className="text-xs font-medium text-gray-900">
+                      {currentUser?.displayName || currentUser?.email?.split('@')[0]}
+                    </span>
+                    <span className="text-[10px] text-gray-500">
+                      {currentUser?.email}
+                    </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => setIsDrawerOpen(false)}
@@ -443,7 +464,7 @@ export default function Home() {
                   <button
                     key={item.tab}
                     onClick={() => handleMenuClick(item.tab)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                    className={`w-full flex items-center gap-1 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                       activeTab === item.tab
                         ? 'bg-purple-50 text-purple-600'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -457,28 +478,13 @@ export default function Home() {
             </div>
 
             <div className="p-4 border-t border-gray-200">
-              <div className="flex items-center gap-3 px-3">
-                {currentUser?.photoURL ? (
-                  <img
-                    src={currentUser.photoURL}
-                    alt="Foto do perfil"
-                    className="w-8 h-8 rounded-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                    <span className="text-sm font-medium text-purple-700">
-                      {currentUser?.email?.[0].toUpperCase()}
-                    </span>
-                  </div>
-                )}
-                <button
-                  onClick={handleLogout}
-                  className="flex-1 text-left text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Sair
-                </button>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                <PowerIcon className="w-5 h-5" />
+                Sair
+              </button>
             </div>
           </div>
         </div>

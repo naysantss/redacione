@@ -17,6 +17,7 @@ import {
   Legend,
   Filler
 } from 'chart.js';
+import { XMarkIcon, Bars3Icon, ChartBarIcon, DocumentTextIcon, BookOpenIcon } from '@heroicons/react/24/outline';
 
 ChartJS.register(
   CategoryScale,
@@ -83,6 +84,7 @@ export default function Home() {
     }
   });
   const [creditAmount, setCreditAmount] = useState<number>(1);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -316,23 +318,52 @@ export default function Home() {
     }
   };
 
+  const menuItems = [
+    {
+      name: 'Temas para Redação',
+      icon: <BookOpenIcon className="w-5 h-5" />,
+      tab: 'temas'
+    },
+    {
+      name: 'Minhas Redações',
+      icon: <DocumentTextIcon className="w-5 h-5" />,
+      tab: 'minhas-redacoes'
+    },
+    {
+      name: 'Meu Desempenho',
+      icon: <ChartBarIcon className="w-5 h-5" />,
+      tab: 'desempenho'
+    }
+  ];
+
+  const handleMenuClick = (tab: string) => {
+    setActiveTab(tab);
+    setIsDrawerOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-8">
       {/* Header */}
-      <header className={`fixed top-0 left-0 right-0 z-10 transition-all duration-300 ${
+      <header className={`fixed top-0 left-0 right-0 z-20 transition-all duration-300 ${
         isScrolled ? 'bg-white/90 backdrop-blur-sm shadow-sm' : 'bg-white'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="Logo" className="h-10 w-10" />
-              <h1 className="text-2xl font-regular bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+              <button
+                onClick={() => setIsDrawerOpen(true)}
+                className="p-2 -ml-2 md:hidden text-gray-500 hover:text-gray-600"
+              >
+                <Bars3Icon className="w-6 h-6" />
+              </button>
+              <img src="/logo.png" alt="Logo" className="h-8 w-8" />
+              <h1 className="text-xl font-regular bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
                 Redacione
               </h1>
             </div>
             <div className="flex items-center gap-4">
               <div 
-                className="group relative px-4 h-9 flex items-center bg-white border border-purple-100 rounded-full hover:border-purple-300 hover:bg-purple-50/50 transition-all duration-300 cursor-help"
+                className="group relative px-4 h-8 flex items-center bg-white border border-purple-100 rounded-full hover:border-purple-300 hover:bg-purple-50/50 transition-all duration-300 cursor-help"
               >
                 <span className="text-sm font-medium text-purple-700">
                   {credits} {credits <= 1 ? 'crédito' : 'créditos'}
@@ -350,10 +381,83 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <div 
-                className="group w-10 h-10 flex items-center justify-start rounded-full bg-gray-50 hover:bg-gray-100 transition-all duration-300 cursor-pointer overflow-hidden hover:w-[5.5rem] relative pl-1.5"
-                onClick={handleLogout}
-              >
+
+              {/* Desktop Logout Button - Hidden on Mobile */}
+              <div className="hidden md:block">
+                <div 
+                  className="group w-10 h-10 flex items-center justify-start rounded-full bg-gray-50 hover:bg-gray-100 transition-all duration-300 cursor-pointer overflow-hidden hover:w-[5.5rem] relative pl-1.5"
+                  onClick={handleLogout}
+                >
+                  {currentUser?.photoURL ? (
+                    <img
+                      src={currentUser.photoURL}
+                      alt="Foto do perfil"
+                      className="w-8 h-8 rounded-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                      <span className="text-sm font-medium text-purple-700">
+                        {currentUser?.email?.[0].toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <span className="absolute ml-1 left-10 text-sm text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    Sair
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Drawer */}
+      <div className={`fixed inset-0 bg-black/50 z-30 transition-opacity duration-300 md:hidden ${
+        isDrawerOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`} onClick={() => setIsDrawerOpen(false)}>
+        <div 
+          className={`fixed inset-y-0 left-0 w-64 bg-white transform transition-transform duration-300 ease-in-out ${
+            isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex flex-col h-full">
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <img src="/logo.png" alt="Logo" className="h-8 w-8" />
+                </div>
+                <button
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="p-2 text-gray-500 hover:text-gray-600"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto py-4">
+              <nav className="space-y-1 px-3">
+                {menuItems.map((item) => (
+                  <button
+                    key={item.tab}
+                    onClick={() => handleMenuClick(item.tab)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      activeTab === item.tab
+                        ? 'bg-purple-50 text-purple-600'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    {item.icon}
+                    {item.name}
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            <div className="p-4 border-t border-gray-200">
+              <div className="flex items-center gap-3 px-3">
                 {currentUser?.photoURL ? (
                   <img
                     src={currentUser.photoURL}
@@ -368,51 +472,44 @@ export default function Home() {
                     </span>
                   </div>
                 )}
-                <span className="absolute ml-1 left-10 text-sm text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <button
+                  onClick={handleLogout}
+                  className="flex-1 text-left text-sm font-medium text-gray-600 hover:text-gray-900"
+                >
                   Sair
-                </span>
+                </button>
               </div>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
-        {/* Tabs */}
-        <div className="border-b border-gray-200">
+        {/* Desktop Tabs - Hidden on Mobile */}
+        <div className="border-b border-gray-200 hidden md:block">
           <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('temas')}
-              className={`${
-                activeTab === 'temas'
-                  ? 'border-purple-500 text-purple-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-all duration-200`}
-            >
-              Temas para Redação
-            </button>
-            <button
-              onClick={() => setActiveTab('minhas-redacoes')}
-              className={`${
-                activeTab === 'minhas-redacoes'
-                  ? 'border-purple-500 text-purple-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-all duration-200`}
-            >
-              Minhas Redações
-            </button>
-            <button
-              onClick={() => setActiveTab('desempenho')}
-              className={`${
-                activeTab === 'desempenho'
-                  ? 'border-purple-500 text-purple-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-all duration-200`}
-            >
-              Meu Desempenho
-            </button>
+            {menuItems.map((item) => (
+              <button
+                key={item.tab}
+                onClick={() => setActiveTab(item.tab)}
+                className={`${
+                  activeTab === item.tab
+                    ? 'border-purple-500 text-purple-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-all duration-200`}
+              >
+                {item.name}
+              </button>
+            ))}
           </nav>
+        </div>
+
+        {/* Mobile Title */}
+        <div className="md:hidden py-4">
+          <h2 className="text-lg font-medium text-gray-900">
+            {menuItems.find(item => item.tab === activeTab)?.name}
+          </h2>
         </div>
 
         {/* Content based on active tab */}

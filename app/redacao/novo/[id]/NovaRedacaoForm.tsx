@@ -180,7 +180,8 @@ export default function NovaRedacaoForm({ id }: NovaRedacaoFormProps) {
               </svg>
             </button>
 
-            <div className="flex items-center space-x-6">
+            {/* Desktop Controls */}
+            <div className="hidden md:flex items-center space-x-6">
               <div className={`flex items-center gap-6 px-4 py-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-full`}>
                 <button
                   onClick={() => setShowModal(true)}
@@ -214,6 +215,27 @@ export default function NovaRedacaoForm({ id }: NovaRedacaoFormProps) {
                 </button>
               </div>
             </div>
+
+            {/* Mobile Controls */}
+            <div className="flex md:hidden items-center gap-2">
+              <button
+                onClick={() => setShowModal(true)}
+                className={`p-2 rounded-full ${
+                  darkMode ? 'text-gray-200 hover:text-purple-400' : 'text-gray-600 hover:text-purple-600'
+                }`}
+              >
+                <InformationCircleIcon className="h-5 w-5" />
+              </button>
+
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className={`p-2 rounded-full ${
+                  darkMode ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-600 hover:text-purple-600'
+                }`}
+              >
+                {darkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -221,9 +243,9 @@ export default function NovaRedacaoForm({ id }: NovaRedacaoFormProps) {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/30 z-50 flex items-center justify-center p-4">
-          <div className={`${darkMode ? 'bg-gray-800/95 text-white' : 'bg-white/95 text-gray-900'} rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col backdrop-blur-sm`}>
-            <div className="flex justify-between items-start p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold">Texto de Apoio</h2>
+          <div className={`${darkMode ? 'bg-gray-800/95 text-white' : 'bg-white/95 text-gray-900'} rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col backdrop-blur-sm m-4`}>
+            <div className="flex justify-between items-start p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg sm:text-xl font-semibold">Texto de Apoio</h2>
               <button
                 onClick={() => setShowModal(false)}
                 className="text-gray-400 hover:text-gray-500 transition-colors"
@@ -231,12 +253,12 @@ export default function NovaRedacaoForm({ id }: NovaRedacaoFormProps) {
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
-            <div className="p-6 overflow-y-auto flex-1">
-              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed whitespace-pre-wrap`}>
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed whitespace-pre-wrap text-sm sm:text-base`}>
                 {tema.descricao}
               </p>
             </div>
-            <div className="flex justify-end p-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex justify-end p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 bg-purple-600 text-white rounded-full text-sm hover:bg-purple-700 transition-colors"
@@ -251,19 +273,19 @@ export default function NovaRedacaoForm({ id }: NovaRedacaoFormProps) {
       {/* Main Content */}
       <main className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          <h1 className={`text-center font-light text-2xl mb-8 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className={`text-center font-light text-xl sm:text-2xl mb-6 sm:mb-8 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             {tema.titulo}
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className={`max-w-2xl mx-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg rounded-lg overflow-hidden`}>
-              <div className="p-8">
+              <div className="p-4 sm:p-8">
                 <input
                   type="text"
                   value={titulo}
                   onChange={(e) => setTitulo(e.target.value)}
                   placeholder="Título da sua redação"
-                  className={`w-full text-xl font-semibold mb-6 border-0 ${
+                  className={`w-full text-lg sm:text-xl font-semibold mb-6 border-0 ${
                     darkMode 
                       ? 'bg-gray-800 text-white placeholder-gray-500' 
                       : 'bg-white text-gray-900 placeholder-gray-400'
@@ -284,7 +306,7 @@ export default function NovaRedacaoForm({ id }: NovaRedacaoFormProps) {
                     }}
                   />
                   {arquivoUrl && (
-                    <p className={`mt-4 ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                    <p className={`mt-4 text-sm sm:text-base ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
                       Arquivo enviado com sucesso!
                     </p>
                   )}
@@ -297,12 +319,12 @@ export default function NovaRedacaoForm({ id }: NovaRedacaoFormProps) {
             )}
 
             {/* Submit Button */}
-            <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+            <div className="fixed bottom-4 sm:bottom-8 left-1/2 transform -translate-x-1/2 z-20 w-full px-4 sm:px-0 sm:w-auto">
               <button
                 type="submit"
                 disabled={enviando || !arquivoUrl}
                 className={`
-                  inline-flex items-center px-8 py-3 rounded-full shadow-lg text-sm font-medium text-white
+                  w-full sm:w-auto inline-flex items-center justify-center px-6 sm:px-8 py-3 rounded-full shadow-lg text-sm font-medium text-white
                   ${(enviando || !arquivoUrl)
                     ? 'bg-purple-400 cursor-not-allowed'
                     : 'bg-purple-600 hover:bg-purple-700'

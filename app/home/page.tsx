@@ -458,7 +458,7 @@ export default function Home() {
                     )}
                     <h2 className="text-xl font-semibold mb-2">Tema em Destaque</h2>
                     <p className="mb-4 text-lg">{temaDestaque.titulo}</p>
-                    <p className="mb-4 text-gray-100">{temaDestaque.descricao}</p>
+                    <p className="mb-4 text-gray-100 line-clamp-3 max-h-32">{temaDestaque.descricao}</p>
                     <div 
                       className="inline-flex bg-white text-purple-600 px-4 py-2 rounded-full font-medium hover:bg-purple-50 transition-colors shadow-sm"
                     >

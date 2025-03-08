@@ -4,13 +4,13 @@ import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCOQRVC-j5TkW7K1Ofgxn8K4_zYsWA6Og8",
-  authDomain: "dunas-trip-firebase-proj-1548e.firebaseapp.com",
-  projectId: "dunas-trip-firebase-proj-1548e",
-  storageBucket: "dunas-trip-firebase-proj-1548e.firebasestorage.app",
-  messagingSenderId: "1030856580709",
-  appId: "1:1030856580709:web:95dd1eaaf4af6b80f3708c",
-  measurementId: "G-JC9SB12SMT"
+  apiKey: "AIzaSyDVvRbW-PdHmz_8Oc3LMhteCaD98i-VaaA",
+  authDomain: "redacione-c7f44.firebaseapp.com",
+  projectId: "redacione-c7f44",
+  storageBucket: "redacione-c7f44.firebasestorage.app",
+  messagingSenderId: "198758717483",
+  appId: "1:198758717483:web:280dac6d80bfa8da8fb26e",
+  measurementId: "G-GFWVLF74HD"
 };
 
 const app = initializeApp(firebaseConfig);

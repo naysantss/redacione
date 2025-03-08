@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react';
 import NovaRedacaoForm from './NovaRedacaoForm';
+import { use } from 'react';
 
 function LoadingFallback() {
   return (
@@ -15,13 +16,18 @@ function LoadingFallback() {
 }
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
+}
+
+function NovaRedacaoWrapper({ params }: PageProps) {
+  const resolvedParams = use(params);
+  return <NovaRedacaoForm id={resolvedParams.id} />;
 }
 
 export default function Page({ params }: PageProps) {
   return (
     <Suspense fallback={<LoadingFallback />}>
-      <NovaRedacaoForm params={params} />
+      <NovaRedacaoWrapper params={params} />
     </Suspense>
   );
 } 

@@ -26,10 +26,10 @@ interface RedacaoData {
 }
 
 interface NovaRedacaoFormProps {
-  params: { id: string };
+  id: string;
 }
 
-export default function NovaRedacaoForm({ params }: NovaRedacaoFormProps) {
+export default function NovaRedacaoForm({ id }: NovaRedacaoFormProps) {
   const router = useRouter();
   const { currentUser, credits, updateCredits } = UserAuth();
   const [tema, setTema] = useState<Tema | null>(null);
@@ -41,7 +41,6 @@ export default function NovaRedacaoForm({ params }: NovaRedacaoFormProps) {
   const [darkMode, setDarkMode] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { id } = params;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -222,20 +221,22 @@ export default function NovaRedacaoForm({ params }: NovaRedacaoFormProps) {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/30 z-50 flex items-center justify-center p-4">
-          <div className={`${darkMode ? 'bg-gray-800/95 text-white' : 'bg-white/95 text-gray-900'} rounded-lg shadow-xl max-w-2xl w-full p-6 backdrop-blur-sm`}>
-            <div className="flex justify-between items-start mb-4">
+          <div className={`${darkMode ? 'bg-gray-800/95 text-white' : 'bg-white/95 text-gray-900'} rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col backdrop-blur-sm`}>
+            <div className="flex justify-between items-start p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-xl font-semibold">Texto de Apoio</h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-500"
+                className="text-gray-400 hover:text-gray-500 transition-colors"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
-            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6 leading-relaxed`}>
-              {tema.descricao}
-            </p>
-            <div className="flex justify-end">
+            <div className="p-6 overflow-y-auto flex-1">
+              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed whitespace-pre-wrap`}>
+                {tema.descricao}
+              </p>
+            </div>
+            <div className="flex justify-end p-6 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 bg-purple-600 text-white rounded-full text-sm hover:bg-purple-700 transition-colors"

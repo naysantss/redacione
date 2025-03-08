@@ -1,0 +1,31 @@
+{
+  "name": "redacione",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "populate-temas": "ts-node scripts/populateTemas.ts"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "@uploadcare/react-uploader": "^1.5.0",
+    "chart.js": "^4.4.8",
+    "firebase": "^11.4.0",
+    "next": "15.2.1",
+    "react": "^19.0.0",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
+  }
+}

@@ -15,13 +15,13 @@ function LoadingFallback() {
 }
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function Page({ params }: PageProps) {
   return (
     <Suspense fallback={<LoadingFallback />}>
-      <NovaRedacaoForm params={Promise.resolve(params)} />
+      <NovaRedacaoForm params={params} />
     </Suspense>
   );
 } 

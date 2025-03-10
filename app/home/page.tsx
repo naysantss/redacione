@@ -34,9 +34,13 @@ ChartJS.register(
 interface Tema {
   id: string;
   titulo: string;
-  descricao: string;
   dificuldade: 'Fácil' | 'Médio' | 'Difícil';
   destaque?: boolean;
+  conteudos: {
+    tipo: 'texto' | 'imagem';
+    texto?: string;
+    imagemUrl?: string;
+  }[];
 }
 
 interface Redacao {
@@ -603,7 +607,11 @@ export default function Home() {
                     )}
                     <h2 className="text-xl font-semibold mb-2">Tema em Destaque</h2>
                     <p className="mb-4 text-lg">{temaDestaque.titulo}</p>
-                    <p className="mb-4 text-gray-100 line-clamp-3 max-h-32">{temaDestaque.descricao}</p>
+                    <p className="mb-4 text-gray-100 line-clamp-3 max-h-32">
+                      {temaDestaque.conteudos[0]?.tipo === 'texto' 
+                        ? temaDestaque.conteudos[0].texto 
+                        : 'Clique para ver o conteúdo completo'}
+                    </p>
                     <div 
                       className="inline-flex bg-white text-purple-600 px-4 py-2 rounded-full font-medium hover:bg-purple-50 transition-colors shadow-sm"
                     >
@@ -647,7 +655,11 @@ export default function Home() {
                       <div className="flex-grow">
                         <p className={`${
                           darkMode ? 'text-gray-300' : 'text-gray-600'
-                        } text-sm line-clamp-3`}>{tema.descricao}</p>
+                        } text-sm line-clamp-3`}>
+                          {tema.conteudos[0]?.tipo === 'texto' 
+                            ? tema.conteudos[0].texto 
+                            : 'Clique para ver o conteúdo completo'}
+                        </p>
                       </div>
                       <div 
                         className={`${

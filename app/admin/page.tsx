@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserAuth } from '../context/AuthContext';
-import { collection, query, orderBy, getDocs, doc, updateDoc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, updateDoc, getDoc, addDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import FileUploaderMinimal from '../components/FileUploaderMinimal';
 
@@ -32,10 +32,13 @@ interface Redacao {
 
 interface FormData {
   titulo: string;
-  descricao: string;
   dificuldade: 'Fácil' | 'Médio' | 'Difícil';
   destaque: boolean;
-  imagemUrl?: string;
+  conteudos: {
+    tipo: 'texto' | 'imagem';
+    texto?: string;
+    imagemUrl?: string;
+  }[];
 }
 
 interface CreditAction {
@@ -43,21 +46,40 @@ interface CreditAction {
   amount: number;
 }
 
+interface Tema {
+  id: string;
+  titulo: string;
+  dificuldade: 'Fácil' | 'Médio' | 'Difícil';
+  destaque: boolean;
+  conteudos: {
+    tipo: 'texto' | 'imagem';
+    texto?: string;
+    imagemUrl?: string;
+  }[];
+  createdAt: any;
+  createdBy: string;
+}
+
 export default function AdminPage() {
   const router = useRouter();
   const { currentUser, isAdmin } = UserAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [redacoes, setRedacoes] = useState<Redacao[]>([]);
+  const [temas, setTemas] = useState<Tema[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [creditAmount, setCreditAmount] = useState<number>(1);
-  const [activeTab, setActiveTab] = useState<'usuarios' | 'redacoes' | 'temas'>('usuarios');
+  const [activeTab, setActiveTab] = useState<'usuarios' | 'redacoes' | 'temas' | 'gerenciar-temas'>('usuarios');
+  const [editingTema, setEditingTema] = useState<Tema | null>(null);
   const [formData, setFormData] = useState<FormData>({
     titulo: '',
-    descricao: '',
     dificuldade: 'Médio',
     destaque: false,
-    imagemUrl: '',
+    conteudos: [
+      { tipo: 'texto', texto: '' },
+      { tipo: 'texto', texto: '' },
+      { tipo: 'texto', texto: '' }
+    ]
   });
   const [submitting, setSubmitting] = useState(false);
   const [creditActions, setCreditActions] = useState<Record<string, number>>({});
@@ -94,6 +116,16 @@ export default function AdminPage() {
           redacoesData.push({ id: doc.id, ...doc.data() } as Redacao);
         });
         setRedacoes(redacoesData);
+
+        // Buscar temas
+        const temasRef = collection(db, 'temas');
+        const temasQuery = query(temasRef, orderBy('createdAt', 'desc'));
+        const temasSnapshot = await getDocs(temasQuery);
+        const temasData: Tema[] = [];
+        temasSnapshot.forEach((doc) => {
+          temasData.push({ id: doc.id, ...doc.data() } as Tema);
+        });
+        setTemas(temasData);
       } catch (error) {
         console.error('Erro ao buscar dados:', error);
       } finally {
@@ -157,25 +189,68 @@ export default function AdminPage() {
     }
   };
 
+  const handleConteudoChange = (index: number, tipo: 'texto' | 'imagem', value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      conteudos: prev.conteudos.map((conteudo, i) => {
+        if (i === index) {
+          return {
+            tipo,
+            ...(tipo === 'texto' ? { texto: value, imagemUrl: undefined } : { imagemUrl: value, texto: undefined })
+          };
+        }
+        return conteudo;
+      })
+    }));
+  };
+
   const handleAddTema = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      const temasRef = collection(db, 'temas');
-      await addDoc(temasRef, {
-        ...formData,
-        createdAt: serverTimestamp(),
-        createdBy: currentUser?.email,
+      // Limpar e validar os dados antes de enviar
+      const conteudosLimpos = formData.conteudos.map(conteudo => {
+        if (conteudo.tipo === 'texto') {
+          return {
+            tipo: 'texto',
+            texto: conteudo.texto || ''
+          };
+        } else {
+          return {
+            tipo: 'imagem',
+            imagemUrl: conteudo.imagemUrl || ''
+          };
+        }
+      }).filter(conteudo => {
+        if (conteudo.tipo === 'texto') {
+          return conteudo.texto?.trim();
+        }
+        return conteudo.tipo === 'imagem' && conteudo.imagemUrl;
       });
+
+      const temaData = {
+        titulo: formData.titulo.trim(),
+        dificuldade: formData.dificuldade,
+        destaque: formData.destaque,
+        conteudos: conteudosLimpos,
+        createdAt: serverTimestamp(),
+        createdBy: currentUser?.email || ''
+      };
+
+      const temasRef = collection(db, 'temas');
+      await addDoc(temasRef, temaData);
 
       alert('Tema adicionado com sucesso!');
       setFormData({
         titulo: '',
-        descricao: '',
         dificuldade: 'Médio',
         destaque: false,
-        imagemUrl: '',
+        conteudos: [
+          { tipo: 'texto', texto: '' },
+          { tipo: 'texto', texto: '' },
+          { tipo: 'texto', texto: '' }
+        ]
       });
     } catch (error) {
       console.error('Erro ao adicionar tema:', error);
@@ -193,6 +268,103 @@ export default function AdminPage() {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
     }));
+  };
+
+  const handleDeleteTema = async (temaId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este tema?')) return;
+
+    try {
+      await deleteDoc(doc(db, 'temas', temaId));
+      setTemas(temas.filter(tema => tema.id !== temaId));
+      alert('Tema excluído com sucesso!');
+    } catch (error) {
+      console.error('Erro ao excluir tema:', error);
+      alert('Erro ao excluir tema. Tente novamente.');
+    }
+  };
+
+  const handleEditTema = (tema: Tema) => {
+    setEditingTema(tema);
+    setFormData({
+      titulo: tema.titulo,
+      dificuldade: tema.dificuldade,
+      destaque: tema.destaque,
+      conteudos: tema.conteudos
+    });
+    setActiveTab('temas');
+  };
+
+  const handleUpdateTema = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTema) return;
+
+    setSubmitting(true);
+
+    try {
+      const conteudosLimpos = formData.conteudos
+        .map(conteudo => {
+          if (conteudo.tipo === 'texto') {
+            return {
+              tipo: 'texto' as const,
+              texto: conteudo.texto || ''
+            };
+          } else {
+            return {
+              tipo: 'imagem' as const,
+              imagemUrl: conteudo.imagemUrl || ''
+            };
+          }
+        })
+        .filter(conteudo => 
+          (conteudo.tipo === 'texto' && conteudo.texto?.trim()) || 
+          (conteudo.tipo === 'imagem' && conteudo.imagemUrl)
+        );
+
+      const temaData = {
+        titulo: formData.titulo.trim(),
+        dificuldade: formData.dificuldade,
+        destaque: formData.destaque,
+        conteudos: conteudosLimpos,
+        updatedAt: serverTimestamp(),
+        updatedBy: currentUser?.email || ''
+      };
+
+      await updateDoc(doc(db, 'temas', editingTema.id), temaData);
+
+      // Atualizar a lista de temas
+      setTemas(prevTemas => 
+        prevTemas.map(tema => {
+          if (tema.id === editingTema.id) {
+            return {
+              ...tema,
+              ...temaData,
+              id: tema.id,
+              createdAt: tema.createdAt,
+              createdBy: tema.createdBy
+            } as Tema;
+          }
+          return tema;
+        })
+      );
+
+      alert('Tema atualizado com sucesso!');
+      setEditingTema(null);
+      setFormData({
+        titulo: '',
+        dificuldade: 'Médio',
+        destaque: false,
+        conteudos: [
+          { tipo: 'texto', texto: '' },
+          { tipo: 'texto', texto: '' },
+          { tipo: 'texto', texto: '' }
+        ]
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar tema:', error);
+      alert('Erro ao atualizar tema. Tente novamente.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -250,6 +422,16 @@ export default function AdminPage() {
                 } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-all duration-200`}
               >
                 Adicionar Tema
+              </button>
+              <button
+                onClick={() => setActiveTab('gerenciar-temas')}
+                className={`${
+                  activeTab === 'gerenciar-temas'
+                    ? 'border-purple-500 text-purple-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-all duration-200`}
+              >
+                Gerenciar Temas
               </button>
             </nav>
           </div>
@@ -386,14 +568,83 @@ export default function AdminPage() {
           </div>
         )}
 
+        {activeTab === 'gerenciar-temas' && (
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div className="px-4 py-5 sm:px-6">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                Temas Existentes
+              </h3>
+              <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                Gerencie os temas de redação existentes
+              </p>
+            </div>
+            <ul className="divide-y divide-gray-200">
+              {temas.map((tema) => (
+                <li key={tema.id} className="px-6 py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium text-gray-900">
+                        {tema.titulo}
+                      </h3>
+                      <div className="mt-1 flex items-center gap-4">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          tema.dificuldade === 'Fácil' ? 'bg-green-100 text-green-800' :
+                          tema.dificuldade === 'Médio' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {tema.dificuldade}
+                        </span>
+                        {tema.destaque && (
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
+                            Destaque
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-500">
+                          Criado em {new Date(tema.createdAt?.toDate()).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditTema(tema)}
+                        className="inline-flex items-center p-2 border border-transparent rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                        title="Editar tema"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTema(tema.id)}
+                        className="inline-flex items-center p-2 border border-transparent rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        title="Excluir tema"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {activeTab === 'temas' && (
           <div className="bg-white rounded-lg shadow-lg p-8">
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900">Adicionar Novo Tema</h2>
-              <p className="mt-1 text-sm text-gray-500">Preencha os campos abaixo para criar um novo tema de redação.</p>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {editingTema ? 'Editar Tema' : 'Adicionar Novo Tema'}
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
+                {editingTema 
+                  ? 'Atualize os campos abaixo para modificar o tema de redação.'
+                  : 'Preencha os campos abaixo para criar um novo tema de redação.'}
+              </p>
             </div>
             
-            <form onSubmit={handleAddTema} className="space-y-8">
+            <form onSubmit={editingTema ? handleUpdateTema : handleAddTema} className="space-y-8">
               <div className="grid grid-cols-1 gap-8">
                 <div className="space-y-2">
                   <label htmlFor="titulo" className="block text-sm font-semibold text-gray-900">
@@ -411,49 +662,63 @@ export default function AdminPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="descricao" className="block text-sm font-semibold text-gray-900">
-                    Descrição Detalhada
-                  </label>
-                  <textarea
-                    id="descricao"
-                    name="descricao"
-                    required
-                    value={formData.descricao}
-                    onChange={handleChange}
-                    rows={6}
-                    className="block w-full rounded-lg border-gray-300 bg-gray-50 py-3 px-4 text-gray-900 placeholder-gray-500 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-base font-medium"
-                    placeholder="Descreva o tema, incluindo pontos importantes a serem abordados, contexto e orientações para os alunos..."
-                  />
-                </div>
+                {formData.conteudos.map((conteudo, index) => (
+                  <div key={index} className="space-y-4 p-6 border border-gray-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium text-gray-900">Conteúdo {index + 1}</h3>
+                      <div className="flex items-center gap-4">
+                        <label className="inline-flex items-center">
+                          <input
+                            type="radio"
+                            checked={conteudo.tipo === 'texto'}
+                            onChange={() => handleConteudoChange(index, 'texto', '')}
+                            className="form-radio text-purple-600"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">Texto</span>
+                        </label>
+                        <label className="inline-flex items-center">
+                          <input
+                            type="radio"
+                            checked={conteudo.tipo === 'imagem'}
+                            onChange={() => handleConteudoChange(index, 'imagem', '')}
+                            className="form-radio text-purple-600"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">Imagem</span>
+                        </label>
+                      </div>
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-900">
-                    Imagem do Tema
-                  </label>
-                  <div className="mt-1">
-                    <FileUploaderMinimal
-                      pubkey="5bceb696ca30c929948e"
-                      multiple={false}
-                      imgOnly
-                      classNameUploader={'uc-light uc-purple'}
-                      onChange={(info) => {
-                        setFormData(prev => ({ ...prev, imagemUrl: info.cdnUrl }));
-                      }}
-                    />
-                    {formData.imagemUrl && (
-                      <div className="mt-3 flex items-center gap-2 text-sm text-green-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Imagem enviada com sucesso!
+                    {conteudo.tipo === 'texto' ? (
+                      <textarea
+                        value={conteudo.texto || ''}
+                        onChange={(e) => handleConteudoChange(index, 'texto', e.target.value)}
+                        rows={4}
+                        className="block w-full rounded-lg border-gray-300 bg-gray-50 py-3 px-4 text-gray-900 placeholder-gray-500 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-base font-medium"
+                        placeholder="Digite o texto de apoio..."
+                      />
+                    ) : (
+                      <div>
+                        <FileUploaderMinimal
+                          pubkey="5bceb696ca30c929948e"
+                          multiple={false}
+                          imgOnly
+                          classNameUploader={'uc-light uc-purple'}
+                          onChange={(info) => {
+                            handleConteudoChange(index, 'imagem', info.cdnUrl);
+                          }}
+                        />
+                        {conteudo.imagemUrl && (
+                          <div className="mt-3 flex items-center gap-2 text-sm text-green-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Imagem enviada com sucesso!
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Faça o upload de uma imagem relacionada ao tema (opcional)
-                  </p>
-                </div>
+                ))}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -491,6 +756,27 @@ export default function AdminPage() {
               </div>
 
               <div className="flex items-center justify-end pt-4">
+                {editingTema && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingTema(null);
+                      setFormData({
+                        titulo: '',
+                        dificuldade: 'Médio',
+                        destaque: false,
+                        conteudos: [
+                          { tipo: 'texto', texto: '' },
+                          { tipo: 'texto', texto: '' },
+                          { tipo: 'texto', texto: '' }
+                        ]
+                      });
+                    }}
+                    className="mr-4 px-6 py-3 border border-gray-300 rounded-lg shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200"
+                  >
+                    Cancelar
+                  </button>
+                )}
                 <button
                   type="submit"
                   disabled={submitting}
@@ -522,14 +808,14 @@ export default function AdminPage() {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>
-                      Adicionando Tema...
+                      {editingTema ? 'Atualizando Tema...' : 'Adicionando Tema...'}
                     </>
                   ) : (
                     <>
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 mr-2">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                       </svg>
-                      Adicionar Tema
+                      {editingTema ? 'Atualizar Tema' : 'Adicionar Tema'}
                     </>
                   )}
                 </button>

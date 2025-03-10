@@ -1,0 +1,125 @@
+// Alterações para o tema escuro nos cards de tema
+<div 
+  key={tema.id} 
+  onClick={() => handleStartRedacao(tema.id)}
+  className={`${
+    darkMode 
+      ? 'bg-gray-800 hover:bg-gray-700' 
+      : 'bg-white hover:shadow-lg'
+  } rounded-lg shadow p-6 flex flex-col h-[220px] transition-all duration-300 hover:scale-[1.02] cursor-pointer relative`}
+>
+  <div className="flex justify-between items-start gap-4 mb-3">
+    <h3 className={`text-lg font-semibold ${
+      darkMode ? 'text-gray-100' : 'text-gray-900'
+    } line-clamp-2 flex-grow`}>{tema.titulo}</h3>
+  </div>
+  <div className="flex-grow">
+    <p className={`${
+      darkMode ? 'text-gray-300' : 'text-gray-600'
+    } text-sm line-clamp-3`}>{tema.descricao}</p>
+  </div>
+</div>
+
+// Alterações para o drawer
+<div className={`p-4 border-b ${
+  darkMode ? 'border-gray-700' : 'border-gray-200'
+} flex items-center justify-between`}>
+  <div className="flex items-center gap-3">
+    {currentUser?.photoURL ? (
+      <img
+        src={currentUser.photoURL}
+        alt="Foto do perfil"
+        className="w-8 h-8 rounded-full object-cover"
+        referrerPolicy="no-referrer"
+      />
+    ) : (
+      <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+        <span className="text-sm font-medium text-purple-700">
+          {currentUser?.email?.[0].toUpperCase()}
+        </span>
+      </div>
+    )}
+    <div className="flex flex-col">
+      <span className={`text-xs font-medium truncate ${
+        darkMode ? 'text-gray-200' : 'text-gray-900'
+      }`}>
+        {currentUser?.displayName || currentUser?.email?.split('@')[0]}
+      </span>
+      <span className={`text-[10px] truncate ${
+        darkMode ? 'text-gray-400' : 'text-gray-500'
+      }`}>
+        {currentUser?.email}
+      </span>
+    </div>
+  </div>
+  <button
+    onClick={toggleDarkMode}
+    className={`p-2 ${
+      darkMode 
+        ? 'text-yellow-400 hover:text-yellow-300' 
+        : 'text-gray-500 hover:text-purple-600'
+    }`}
+  >
+    {darkMode ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
+  </button>
+</div>
+
+// Alterações para os cards de estatísticas
+<div className={`${
+  darkMode ? 'bg-gray-800' : 'bg-white'
+} shadow rounded-lg p-6`}>
+  <h3 className={`text-sm font-medium ${
+    darkMode ? 'text-gray-400' : 'text-gray-500'
+  } mb-2`}>{stat.title}</h3>
+  <p className={`text-2xl font-bold ${
+    darkMode 
+      ? stat.color === 'text-gray-900' 
+        ? 'text-gray-100' 
+        : stat.color 
+      : stat.color
+  }`}>{stat.value}</p>
+</div>
+
+// Alterações para o gráfico
+<div className={`${
+  darkMode ? 'bg-gray-800' : 'bg-white'
+} shadow rounded-lg p-6`}>
+  <h2 className={`text-lg font-medium ${
+    darkMode ? 'text-gray-100' : 'text-gray-900'
+  } mb-4`}>Evolução das Notas</h2>
+  {estatisticas.historicoNotas.notas.length > 0 ? (
+    <div className="h-64">
+      <Line options={{
+        ...chartOptions,
+        scales: {
+          ...chartOptions.scales,
+          y: {
+            ...chartOptions.scales.y,
+            grid: {
+              color: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+            },
+            ticks: {
+              ...chartOptions.scales.y.ticks,
+              color: darkMode ? '#9CA3AF' : undefined
+            }
+          },
+          x: {
+            ...chartOptions.scales.x,
+            ticks: {
+              ...chartOptions.scales.x.ticks,
+              color: darkMode ? '#9CA3AF' : undefined
+            }
+          }
+        }
+      }} data={chartData} />
+    </div>
+  ) : (
+    <div className={`h-64 ${
+      darkMode ? 'bg-gray-700' : 'bg-gray-50'
+    } rounded-lg flex items-center justify-center`}>
+      <p className={`${
+        darkMode ? 'text-gray-400' : 'text-gray-500'
+      }`}>Você ainda não tem redações corrigidas.</p>
+    </div>
+  )}
+</div> 

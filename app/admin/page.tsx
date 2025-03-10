@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { UserAuth } from '../context/AuthContext';
 import { collection, query, orderBy, getDocs, doc, updateDoc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
+import FileUploaderMinimal from '../components/FileUploaderMinimal';
 
 interface User {
   id: string;
@@ -34,6 +35,7 @@ interface FormData {
   descricao: string;
   dificuldade: 'Fácil' | 'Médio' | 'Difícil';
   destaque: boolean;
+  imagemUrl?: string;
 }
 
 interface CreditAction {
@@ -55,6 +57,7 @@ export default function AdminPage() {
     descricao: '',
     dificuldade: 'Médio',
     destaque: false,
+    imagemUrl: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [creditActions, setCreditActions] = useState<Record<string, number>>({});
@@ -172,6 +175,7 @@ export default function AdminPage() {
         descricao: '',
         dificuldade: 'Médio',
         destaque: false,
+        imagemUrl: '',
       });
     } catch (error) {
       console.error('Erro ao adicionar tema:', error);
@@ -421,6 +425,34 @@ export default function AdminPage() {
                     className="block w-full rounded-lg border-gray-300 bg-gray-50 py-3 px-4 text-gray-900 placeholder-gray-500 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-base font-medium"
                     placeholder="Descreva o tema, incluindo pontos importantes a serem abordados, contexto e orientações para os alunos..."
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-900">
+                    Imagem do Tema
+                  </label>
+                  <div className="mt-1">
+                    <FileUploaderMinimal
+                      pubkey="5bceb696ca30c929948e"
+                      multiple={false}
+                      imgOnly
+                      classNameUploader={'uc-light uc-purple'}
+                      onChange={(info) => {
+                        setFormData(prev => ({ ...prev, imagemUrl: info.cdnUrl }));
+                      }}
+                    />
+                    {formData.imagemUrl && (
+                      <div className="mt-3 flex items-center gap-2 text-sm text-green-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Imagem enviada com sucesso!
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Faça o upload de uma imagem relacionada ao tema (opcional)
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

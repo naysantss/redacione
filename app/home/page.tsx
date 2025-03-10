@@ -17,7 +17,8 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import { XMarkIcon, Bars3Icon, ChartBarIcon, DocumentTextIcon, BookOpenIcon, PowerIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, Bars3Icon, ChartBarIcon, DocumentTextIcon, BookOpenIcon, PowerIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { useTheme } from '../context/ThemeContext';
 
 ChartJS.register(
   CategoryScale,
@@ -65,6 +66,7 @@ interface Estatisticas {
 export default function Home() {
   const router = useRouter();
   const { currentUser, logout, credits, checkCredits, updateCredits } = UserAuth();
+  const { darkMode, toggleDarkMode } = useTheme();
   const [activeTab, setActiveTab] = useState('temas');
   const [temas, setTemas] = useState<Tema[]>([]);
   const [temaDestaque, setTemaDestaque] = useState<Tema | null>(null);
@@ -342,17 +344,19 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8">
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} pb-8 transition-colors duration-200`}>
       {/* Header */}
       <header className={`fixed top-0 left-0 right-0 z-20 transition-all duration-300 ${
-        isScrolled ? 'bg-white/90 backdrop-blur-sm shadow-sm' : 'bg-white'
+        darkMode
+          ? isScrolled ? 'bg-gray-800/80 backdrop-blur-sm shadow-sm' : 'bg-gray-800'
+          : isScrolled ? 'bg-white/90 backdrop-blur-sm shadow-sm' : 'bg-white'
       }`}>
         <div className="px-4 sm:px-6">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsDrawerOpen(true)}
-                className="p-2 -ml-2 md:hidden text-gray-500 hover:text-gray-600"
+                className={`p-2 -ml-2 md:hidden ${darkMode ? 'text-gray-200' : 'text-gray-500'} hover:text-purple-600`}
               >
                 <Bars3Icon className="w-6 h-6" />
               </button>
@@ -362,10 +366,32 @@ export default function Home() {
               </h1>
             </div>
             <div className="flex items-center gap-4">
-              <div 
-                className="group relative px-4 h-8 flex items-center bg-white border border-purple-100 rounded-full hover:border-purple-300 hover:bg-purple-50/50 transition-all duration-300 cursor-help"
+              {/* Theme Toggle - Visible on Desktop */}
+              <button
+                onClick={toggleDarkMode}
+                className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
+                  darkMode ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-600 hover:text-purple-600'
+                }`}
               >
-                <span className="text-sm font-medium text-purple-700">
+                {darkMode ? (
+                  <>
+                    <SunIcon className="h-4 w-4" />
+                    Modo Claro
+                  </>
+                ) : (
+                  <>
+                    <MoonIcon className="h-4 w-4" />
+                    Modo Escuro
+                  </>
+                )}
+              </button>
+
+              <div 
+                className={`group relative px-4 h-8 flex items-center ${
+                  darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-purple-100'
+                } border rounded-full hover:border-purple-300 hover:bg-purple-50/50 transition-all duration-300 cursor-help`}
+              >
+                <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-purple-700'}`}>
                   {credits} {credits <= 1 ? 'crédito' : 'créditos'}
                 </span>
 
@@ -385,7 +411,9 @@ export default function Home() {
               {/* Desktop Logout Button - Hidden on Mobile */}
               <div className="hidden md:block">
                 <div 
-                  className="group w-10 h-10 flex items-center justify-start rounded-full bg-gray-50 hover:bg-gray-100 transition-all duration-300 cursor-pointer overflow-hidden hover:w-[5.5rem] relative pl-1.5"
+                  className={`group w-10 h-10 flex items-center justify-start rounded-full ${
+                    darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
+                  } transition-all duration-300 cursor-pointer overflow-hidden hover:w-[5.5rem] relative pl-1.5`}
                   onClick={handleLogout}
                 >
                   {currentUser?.photoURL ? (
@@ -402,7 +430,9 @@ export default function Home() {
                       </span>
                     </div>
                   )}
-                  <span className="absolute ml-1 left-10 text-sm text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span className={`absolute ml-1 left-10 text-sm ${
+                    darkMode ? 'text-gray-300' : 'text-gray-700'
+                  } opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
                     Sair
                   </span>
                 </div>
@@ -417,43 +447,45 @@ export default function Home() {
         isDrawerOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`} onClick={() => setIsDrawerOpen(false)}>
         <div 
-          className={`fixed inset-y-0 left-0 w-64 bg-white transform transition-transform duration-300 ease-in-out ${
+          className={`fixed inset-y-0 left-0 w-64 ${
+            darkMode ? 'bg-gray-800' : 'bg-white'
+          } transform transition-transform duration-300 ease-in-out ${
             isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
           onClick={e => e.stopPropagation()}
         >
           <div className="flex flex-col h-full">
-            <div className="p-4 border-b border-gray-200">
+            <div className={`p-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {currentUser?.photoURL ? (
                     <img
                       src={currentUser.photoURL}
                       alt="Foto do perfil"
-                      className="w-10 h-10 rounded-full object-cover"
+                      className="w-8 h-8 rounded-full object-cover"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                      <span className="text-lg font-medium text-purple-700">
+                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                      <span className="text-sm font-medium text-purple-700">
                         {currentUser?.email?.[0].toUpperCase()}
                       </span>
                     </div>
                   )}
                   <div className="flex flex-col">
-                    <span className="text-xs font-medium text-gray-900">
+                    <span className={`text-xs font-medium truncate ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
                       {currentUser?.displayName || currentUser?.email?.split('@')[0]}
                     </span>
-                    <span className="text-[10px] text-gray-500">
+                    <span className={`text-[10px] truncate ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                       {currentUser?.email}
                     </span>
                   </div>
                 </div>
                 <button
-                  onClick={() => setIsDrawerOpen(false)}
-                  className="p-2 text-gray-500 hover:text-gray-600"
+                  onClick={toggleDarkMode}
+                  className={`p-2 ${darkMode ? 'text-yellow-400 hover:text-yellow-300' : 'text-gray-500 hover:text-purple-600'}`}
                 >
-                  <XMarkIcon className="w-5 h-5" />
+                  {darkMode ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
                 </button>
               </div>
             </div>
@@ -464,10 +496,12 @@ export default function Home() {
                   <button
                     key={item.tab}
                     onClick={() => handleMenuClick(item.tab)}
-                    className={`w-full flex items-center gap-1 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                       activeTab === item.tab
                         ? 'bg-purple-50 text-purple-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        : darkMode 
+                          ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
                     {item.icon}
@@ -477,10 +511,14 @@ export default function Home() {
               </nav>
             </div>
 
-            <div className="p-4 border-t border-gray-200">
+            <div className={`p-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                className={`w-full flex items-center al gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  darkMode 
+                    ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
               >
                 <PowerIcon className="w-5 h-5" />
                 Sair
@@ -493,7 +531,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
         {/* Desktop Tabs - Hidden on Mobile */}
-        <div className="border-b border-gray-200 hidden md:block">
+        <div className={`border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} hidden md:block`}>
           <nav className="-mb-px flex space-x-8">
             {menuItems.map((item) => (
               <button
@@ -502,7 +540,9 @@ export default function Home() {
                 className={`${
                   activeTab === item.tab
                     ? 'border-purple-500 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    : darkMode
+                      ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-700'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-all duration-200`}
               >
                 {item.name}
@@ -513,7 +553,7 @@ export default function Home() {
 
         {/* Mobile Title */}
         <div className="md:hidden py-4">
-          <h2 className="text-lg font-medium text-gray-900">
+          <h2 className={`text-lg font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
             {menuItems.find(item => item.tab === activeTab)?.name}
           </h2>
         </div>
@@ -523,7 +563,9 @@ export default function Home() {
           {activeTab === 'temas' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold text-gray-900">Temas Disponíveis</h2>
+                <h2 className={`text-lg font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                  Temas Disponíveis
+                </h2>
                 <div className="flex gap-3">
                   <a
                     href="/FOLHA.pdf"
@@ -579,7 +621,11 @@ export default function Home() {
                     <div 
                       key={tema.id} 
                       onClick={() => handleStartRedacao(tema.id)}
-                      className="bg-white rounded-lg shadow p-6 flex flex-col h-[220px] hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer relative"
+                      className={`${
+                        darkMode 
+                          ? 'bg-gray-800 hover:bg-gray-700' 
+                          : 'bg-white hover:shadow-lg'
+                      } rounded-lg shadow p-6 flex flex-col h-[220px] transition-all duration-300 hover:scale-[1.02] cursor-pointer relative`}
                     >
                       {loadingTemaId === tema.id && (
                         <div className="absolute inset-0 bg-black/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
@@ -587,7 +633,9 @@ export default function Home() {
                         </div>
                       )}
                       <div className="flex justify-between items-start gap-4 mb-3">
-                        <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 flex-grow">{tema.titulo}</h3>
+                        <h3 className={`text-lg font-semibold ${
+                          darkMode ? 'text-gray-100' : 'text-gray-900'
+                        } line-clamp-2 flex-grow`}>{tema.titulo}</h3>
                         <span className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                           tema.dificuldade === 'Fácil' ? 'bg-green-100 text-green-800' :
                           tema.dificuldade === 'Médio' ? 'bg-yellow-100 text-yellow-800' :
@@ -597,10 +645,14 @@ export default function Home() {
                         </span>
                       </div>
                       <div className="flex-grow">
-                        <p className="text-gray-600 text-sm line-clamp-3">{tema.descricao}</p>
+                        <p className={`${
+                          darkMode ? 'text-gray-300' : 'text-gray-600'
+                        } text-sm line-clamp-3`}>{tema.descricao}</p>
                       </div>
                       <div 
-                        className="text-purple-600 hover:text-purple-700 font-medium mt-4 inline-flex items-center group text-sm"
+                        className={`${
+                          darkMode ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-700'
+                        } font-medium mt-4 inline-flex items-center group text-sm`}
                       >
                         Começar redação
                         <svg
@@ -625,31 +677,35 @@ export default function Home() {
           )}
 
           {activeTab === 'minhas-redacoes' && (
-            <div className="bg-white shadow overflow-hidden sm:rounded-md">
-              <ul className="divide-y divide-gray-200">
+            <div className={`${
+              darkMode 
+                ? 'bg-gray-800 text-gray-100' 
+                : 'bg-white text-gray-900'
+            } shadow overflow-hidden sm:rounded-md`}>
+              <ul className={`divide-y ${darkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
                 {loadingRedacoes ? (
                   <div className="flex justify-center items-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
                   </div>
                 ) : redacoes.length === 0 ? (
                   <div className="text-center py-12">
-                    <p className="text-gray-500">Você ainda não tem redações.</p>
+                    <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Você ainda não tem redações.</p>
                     <button
                       onClick={() => setActiveTab('temas')}
-                      className="mt-4 text-purple-600 hover:text-purple-700 font-medium"
+                      className="mt-4 text-purple-500 hover:text-purple-400 font-medium"
                     >
                       Começar uma redação →
                     </button>
                   </div>
                 ) : (
                   redacoes.map((redacao) => (
-                    <li key={redacao.id} className="px-6 py-4 hover:bg-gray-50">
+                    <li key={redacao.id} className={`px-6 py-4 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="text-sm font-medium text-gray-900">
+                          <h3 className={`text-sm font-medium ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
                             {redacao.titulo || `Redação - ${new Date(redacao.createdAt?.toDate()).toLocaleDateString()}`}
                           </h3>
-                          <p className="text-sm text-gray-500">
+                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                             {new Date(redacao.createdAt?.toDate()).toLocaleDateString()}
                           </p>
                         </div>
@@ -728,33 +784,28 @@ export default function Home() {
           {activeTab === 'desempenho' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white shadow rounded-lg p-6">
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Média Geral</h3>
-                  <p className="text-2xl font-bold text-gray-900">{estatisticas.mediaGeral}</p>
-                </div>
-                <div className="bg-white shadow rounded-lg p-6">
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Redações Feitas</h3>
-                  <p className="text-2xl font-bold text-gray-900">{estatisticas.redacoesFeitas}</p>
-                </div>
-                <div className="bg-white shadow rounded-lg p-6">
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Melhor Nota</h3>
-                  <p className="text-2xl font-bold text-green-600">{estatisticas.melhorNota}</p>
-                </div>
-                <div className="bg-white shadow rounded-lg p-6">
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Última Nota</h3>
-                  <p className="text-2xl font-bold text-purple-600">{estatisticas.ultimaNota}</p>
-                </div>
+                {[
+                  { title: 'Média Geral', value: estatisticas.mediaGeral, color: 'text-gray-900' },
+                  { title: 'Redações Feitas', value: estatisticas.redacoesFeitas, color: 'text-gray-900' },
+                  { title: 'Melhor Nota', value: estatisticas.melhorNota, color: 'text-green-600' },
+                  { title: 'Última Nota', value: estatisticas.ultimaNota, color: 'text-purple-600' }
+                ].map((stat, index) => (
+                  <div key={index} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow rounded-lg p-6`}>
+                    <h3 className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-2`}>{stat.title}</h3>
+                    <p className={`text-2xl font-bold ${darkMode ? stat.color === 'text-gray-900' ? 'text-gray-100' : stat.color : stat.color}`}>{stat.value}</p>
+                  </div>
+                ))}
               </div>
 
-              <div className="bg-white shadow rounded-lg p-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">Evolução das Notas</h2>
+              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow rounded-lg p-6`}>
+                <h2 className={`text-lg font-medium ${darkMode ? 'text-gray-100' : 'text-gray-900'} mb-4`}>Evolução das Notas</h2>
                 {estatisticas.historicoNotas.notas.length > 0 ? (
                   <div className="h-64">
                     <Line options={chartOptions} data={chartData} />
                   </div>
                 ) : (
-                  <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                    <p className="text-gray-500">Você ainda não tem redações corrigidas.</p>
+                  <div className={`h-64 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg flex items-center justify-center`}>
+                    <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Você ainda não tem redações corrigidas.</p>
                   </div>
                 )}
               </div>

@@ -14,6 +14,7 @@ interface Tema {
   titulo: string;
   descricao: string;
   dificuldade: 'Fácil' | 'Médio' | 'Difícil';
+  imagemUrl?: string;
 }
 
 interface RedacaoData {
@@ -41,6 +42,7 @@ export default function NovaRedacaoForm({ id }: NovaRedacaoFormProps) {
   const [darkMode, setDarkMode] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showFullImage, setShowFullImage] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -254,6 +256,34 @@ export default function NovaRedacaoForm({ id }: NovaRedacaoFormProps) {
               </button>
             </div>
             <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+              {tema.imagemUrl && (
+                <div className="mb-6">
+                  <div 
+                    className="relative w-full rounded-lg overflow-hidden group"
+                  >
+                    <div className="aspect-[16/9]">
+                      <img
+                        src={tema.imagemUrl}
+                        alt="Imagem do tema"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <button
+                      onClick={() => setShowFullImage(true)}
+                      className="absolute top-2 right-2 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all duration-200 opacity-0 group-hover:opacity-100"
+                      title="Ampliar imagem"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+                      </svg>
+                    </button>
+                    <div 
+                      onClick={() => setShowFullImage(true)}
+                      className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors cursor-pointer"
+                    />
+                  </div>
+                </div>
+              )}
               <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed whitespace-pre-wrap text-sm sm:text-base`}>
                 {tema.descricao}
               </p>
@@ -266,6 +296,31 @@ export default function NovaRedacaoForm({ id }: NovaRedacaoFormProps) {
                 Fechar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Imagem em Tela Cheia */}
+      {showFullImage && tema.imagemUrl && (
+        <div 
+          className="fixed inset-0 bg-black z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowFullImage(false)}
+        >
+          <button
+            onClick={() => setShowFullImage(false)}
+            className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
+          >
+            <XMarkIcon className="h-8 w-8" />
+          </button>
+          <div 
+            className="w-full h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={tema.imagemUrl}
+              alt="Imagem do tema em tela cheia"
+              className="max-w-full max-h-full object-contain"
+            />
           </div>
         </div>
       )}

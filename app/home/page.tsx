@@ -514,13 +514,13 @@ export default function Home() {
             <div className={`p-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <button
                 onClick={handleLogout}
-                className={`w-full flex items-center al gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                className={`w-full flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                   darkMode 
                     ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
-                <PowerIcon className="w-5 h-5" />
+                <PowerIcon className="w-6 h-6" />
                 Sair
               </button>
             </div>
